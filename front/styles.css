@@ -1,0 +1,27 @@
+.wrapper {
+    background-color: #f5f5f5;
+    margin: 0 auto;
+    width: 1100px
+}
+
+.header {
+    background-color: #eeeeee;
+    display: flex;
+    justify-content: start;
+}
+
+.profile {
+    display: flex;
+    justify-content: start;
+    flex-direction: row;
+}
+
+.profile>div {
+    margin: 10px;
+}
+
+.feature_list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}

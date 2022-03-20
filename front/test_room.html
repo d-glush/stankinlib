@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>TestRoom</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+<div class="wrapper">
+
+    <div class="header">
+        <div class="profile">
+            <div class="profile__title">Пользователь:</div>
+            <div class="profile__name">Не авторизован</div>
+            <div class="profile__role">Нет роли</div>
+        </div>
+    </div>
+
+
+    <ul class="collapsible expandable popout">
+        <li>
+            <div class="collapsible-header">Auth</div>
+            <div class="collapsible-body">
+                <ul class="collapsible expandable popout feature_list">
+                    <li>
+                        <div class="collapsible-header">Авторизация</div>
+                        <div class="collapsible-body">
+                            <form id="auth_form">
+                                <div>
+                                    <label>Логин:
+                                        <input type="text" name="login">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Пароль:
+                                        <input type="password" name="password">
+                                    </label>
+                                </div>
+                                <div>
+                                    <button type="submit">Войти</button>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Регистрация</div>
+                        <div class="collapsible-body">
+                            <form id="registration_form">
+                                <div>
+                                    <label>Логин:
+                                        <input type="text" name="login">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Пароль:
+                                        <input type="password" name="password">
+                                    </label>
+                                </div>
+                                <div>
+                                    <button type="submit">Зарегистрировать</button>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Забыл пароль</div>
+                        <div class="collapsible-body">
+                            <form id="forgot_password_form">
+                                <div>
+                                    <label>Почта:
+                                        <input type="text" name="email">
+                                    </label>
+                                </div>
+                                <div>
+                                    <button type="submit">Отправить</button>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Восстановить пароль</div>
+                        <div class="collapsible-body">
+                            <form id="reset_password_form">
+                                <div>
+                                    <label>Секретный код:
+                                        <input type="text" name="secret">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Пароль:
+                                        <input type="password" name="password">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Повторить пароль:
+                                        <input type="password" name="verification_password">
+                                    </label>
+                                </div>
+                                <div>
+                                    <button type="submit">Сменить пароль</button>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </li>
+        <li>
+            <div class="collapsible-header">User features</div>
+            <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+        </li>
+        <li>
+            <div class="collapsible-header">Admin features</div>
+            <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+        </li>
+        <li>
+            <div class="collapsible-header">Moderator features</div>
+            <div class="collapsible-body"><span>Lorem ipsum dolor sit amet.</span></div>
+        </li>
+    </ul>
+
+
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+<script src="scripts.js"></script>
+
+</body>
+</html>
