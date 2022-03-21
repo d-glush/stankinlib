@@ -2,7 +2,7 @@
 
 namespace Routes\ApiRoute;
 
-use Packages\UserRepository\UserDTO\Route\Route;
+use Packages\Route\Route;
 
 class ApiRoute extends Route
 {

@@ -2,12 +2,13 @@
 
 namespace Routes\ApiRoute\UsersRoute;
 
-use Packages\UserRepository\UserDTO\Route\Route;
-use Packages\UserRepository\UserDTO\Route\RouteResponse;
+use JetBrains\PhpStorm\Pure;
+use Packages\Route\Route;
+use Packages\Route\RouteResponse;
 
 class UsersRoute extends Route
 {
-    public function __construct(array $urls = [])
+    #[Pure] public function __construct(array $urls = [])
     {
         parent::__construct($urls);
     }
@@ -22,7 +23,11 @@ class UsersRoute extends Route
         return [
             'getById' => 'getUserById',
             'getByIds' => 'getUserByIds',
-            'add' => 'addUser',
         ];
+    }
+
+    public function changeEmail(): RouteResponse
+    {
+
     }
 }

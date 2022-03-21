@@ -18,18 +18,38 @@ class UserRepository {
         $this->queryBuilder = $queryBuilder;
     }
 
-    public function getUserById(int $id): UserDTO
+    public function getById(int $id): UserDTO
     {
         $query = $this->queryBuilder->buildSelect($this->tableName, '*', "id=$id");
         $result = $this->connection->query($query);
         return new UserDTO($result->fetch());
     }
 
-    public function addUser(UserDTO $userDTO): int|bool
+    public function getByLogin(string $login): UserDTO|bool
+    {
+        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "login='$login'");
+        $result = $this->connection->query($query)->fetch();
+        return $result ? new UserDTO($result) : $result;
+    }
+
+    public function getByEmail(string $email): UserDTO|bool
+    {
+        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "email='$email'");
+        $result = $this->connection->query($query)->fetch();
+        return $result ? new UserDTO($result) : $result;
+    }
+
+    public function add(UserDTO $userDTO): int|bool
     {
         $data = $userDTO->getArrayData();
         $query = $this->queryBuilder->buildInsert($this->tableName, $data);
-        return $this->connection->execute($query);
+        $this->connection->execute($query);
+        return $this->connection->getLastInsertId();
     }
 
+    public function updateByLogin(string $login, array $setArray): bool|int
+    {
+        $query = $this->queryBuilder->buildUpdate($this->tableName, $setArray, ['login' => $login]);
+        return $this->connection->execute($query);
+    }
 }

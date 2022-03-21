@@ -16,6 +16,11 @@
     flex-direction: row;
 }
 
+#cur_login, #cur_role {
+    font-size: 120%;
+    font-weight: 1000;
+}
+
 .profile>div {
     margin: 10px;
 }

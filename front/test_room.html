@@ -15,8 +15,11 @@
     <div class="header">
         <div class="profile">
             <div class="profile__title">Пользователь:</div>
-            <div class="profile__name">Не авторизован</div>
-            <div class="profile__role">Нет роли</div>
+            Логин: <div class="profile__name" id="cur_login">Не авторизован</div>
+            Роль: <div class="profile__role" id="cur_role">Нет роли</div>
+        </div>
+        <div>
+            <button id="exit_button">Выйти</button>
         </div>
     </div>
 
@@ -52,16 +55,46 @@
                             <form id="registration_form">
                                 <div>
                                     <label>Логин:
-                                        <input type="text" name="login">
+                                        <input type="text" name="login" >
                                     </label>
                                 </div>
                                 <div>
                                     <label>Пароль:
-                                        <input type="password" name="password">
+                                        <input type="password" name="password" value="1">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Имя:
+                                        <input type="text" name="name" value="Им">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Фамилия:
+                                        <input type="text" name="lastname" value="Фам">
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>Отчество:
+                                        <input type="text" name="middlename" value="Отч">
                                     </label>
                                 </div>
                                 <div>
                                     <button type="submit">Зарегистрировать</button>
+                                </div>
+                            </form>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="collapsible-header">Сменить почту</div>
+                        <div class="collapsible-body">
+                            <form id="change_email_form">
+                                <div>
+                                    <label>Почта:
+                                        <input type="text" name="email">
+                                    </label>
+                                </div>
+                                <div>
+                                    <button type="submit">Отправить</button>
                                 </div>
                             </form>
                         </div>
@@ -85,11 +118,6 @@
                         <div class="collapsible-header">Восстановить пароль</div>
                         <div class="collapsible-body">
                             <form id="reset_password_form">
-                                <div>
-                                    <label>Секретный код:
-                                        <input type="text" name="secret">
-                                    </label>
-                                </div>
                                 <div>
                                     <label>Пароль:
                                         <input type="password" name="password">

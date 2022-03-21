@@ -10,7 +10,8 @@
     "ext-json": "*",
     "ext-mysqli": "*",
     "ext-curl": "*",
-    "ext-pdo": "*"
+    "ext-pdo": "*",
+    "ext-openssl": "*"
   },
   "require-dev": {
     "phpunit/phpunit": "^9",

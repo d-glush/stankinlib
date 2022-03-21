@@ -4,9 +4,13 @@ namespace Packages\QueryBuilder;
 
 class QueryBuilder {
 
-    public function buildSelect(string $tableName, string $string, string $string1): string
+    public function buildSelect(string $table, string $columns, string $where = '', $limit = ''): string
     {
-
+        $query = "SELECT $columns FROM $table";
+        if ($where) {
+            $query .= " WHERE $where";
+        }
+        return $query;
     }
 
     public function buildInsert(string $table, array $data): string
@@ -30,5 +34,33 @@ class QueryBuilder {
         $values = sprintf($valuesTemplate, $values);
 
         return sprintf($queryTemplate, $start, $insertingValues, $values);
+    }
+
+    public function buildUpdate(string $tableName, array $setArray, array $whereArray): string
+    {
+        $query = "UPDATE $tableName SET ";
+
+        $setters = [];
+        foreach ($setArray as $key => $item) {
+            if (is_string($item)) {
+                $item = "'$item'";
+            }
+            $setters[] = "$key = $item";
+        }
+        $query .= implode(', ', $setters);
+
+        $wheres = [];
+        if ($whereArray) {
+            $query .= ' WHERE ';
+            foreach ($whereArray as $key => $item) {
+                if (is_string($item)) {
+                    $item = "'$item'";
+                }
+                $wheres[] = "$key = $item";
+            }
+            $query .= implode(' AND ', $wheres);
+        }
+
+        return $query;
     }
 }

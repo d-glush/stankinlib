@@ -132,4 +132,10 @@ class UserEntity {
         $this->role = $role;
         return $this;
     }
+
+    public function verifyPassword(string $password): bool
+    {
+        return password_verify($password, $this->password);
+    }
+
 }

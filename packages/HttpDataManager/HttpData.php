@@ -35,7 +35,8 @@ class HttpData
         return $this->inputStreamData;
     }
 
-    public function collectData() {
+    public function collectData()
+    {
         $this->postData = $_POST;
         $this->getData = $_GET;
         $this->cookiesData = $_COOKIE;

@@ -2,6 +2,7 @@
 
 namespace Packages\Route;
 
+use JetBrains\PhpStorm\Pure;
 use Packages\HttpDataManager\HttpData;
 
 abstract class Route
@@ -31,6 +32,16 @@ abstract class Route
 
     abstract protected function getMethods(): array;
 
+    #[Pure] protected function getResponseWrongData(): RouteResponse
+    {
+        return new RouteResponse(['message' => 'wrong data'], 400);
+    }
+
+    #[Pure] protected function getResponseOk(): RouteResponse
+    {
+        return new RouteResponse(['message' => 'ok'], 200);
+    }
+
     private function callSubRoute($urls): RouteResponse
     {
         $wrongMethodNameResponse = new RouteResponse(["error" => RouteResponse::WRONG_METHOD_NAME], 404);
@@ -45,7 +56,7 @@ abstract class Route
 
     private function callMethod($methodRoute): RouteResponse
     {
-        $wrongMethodNameResponse = new RouteResponse(["error" => RouteResponse::WRONG_METHOD_NAME], 404);
+        $wrongMethodNameResponse = new RouteResponse(["error" => RouteResponse::WRONG_METHOD_NAME], 405);
         if (!isset($this->methods[$methodRoute])) {
             return $wrongMethodNameResponse;
         }
