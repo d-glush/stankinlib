@@ -2,32 +2,31 @@
 
 namespace Packages\CurrentUserService;
 
-use Packages\UserService\UserEntity\Role\Role;
 use Packages\UserService\UserEntity\UserEntity;
+use Packages\UserService\UserService;
 
 class CurrentUserService
 {
+    private UserService $userService;
     private bool $isAuthed = false;
-    private ?string $login = null;
-    private ?Role $role = null;
+    private ?UserEntity $user = null;
 
-    public function __construct()
+    public function __construct(UserService $userService)
     {
+        $this->userService = $userService;
         $this->getDataFromSession();
     }
 
     public function login(UserEntity $user) {
         $this->isAuthed = true;
-        $this->login = $user->getLogin();
-        $this->role = $user->getRole();
+        $this->user = $user;
         $this->setDataToSession();
     }
 
     public function logout()
     {
         $this->isAuthed = false;
-        $this->login = null;
-        $this->role = null;
+        $this->user = null;
         $this->setDataToSession();
     }
 
@@ -43,22 +42,15 @@ class CurrentUserService
         }
         $this->isAuthed = true;
         $data = $_SESSION['userData'];
-        $this->login = $data['login'];
-        $this->role = Role::from($data['role']);
+        $this->user = $this->userService->getUserById($data['id']);
     }
 
     private function setDataToSession()
     {
         $_SESSION['userData'] = [
             'is_authed' => $this->isAuthed,
-            'login' => $this->login,
-            'role' => $this->role?->value
+            'id' => $this->isAuthed ? $this->user->getId() : null,
         ];
-    }
-
-    public function getLogin(): ?string
-    {
-        return $this->login;
     }
 
     public function isAuthed(): bool
@@ -66,8 +58,8 @@ class CurrentUserService
         return $this->isAuthed;
     }
 
-    public function getRole(): ?Role
+    public function getUser(): ?UserEntity
     {
-        return $this->role;
+        return $this->user;
     }
 }

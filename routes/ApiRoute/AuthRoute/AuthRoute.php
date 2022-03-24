@@ -38,6 +38,7 @@ class AuthRoute extends Route
     protected function getMethods(): array
     {
         return [
+            'get_current_user' => 'getCurrentUser',
             'login' => 'login',
             'register' => 'registerNewUser',
             'send_reset_password' => 'sendResetPassword',
@@ -73,14 +74,17 @@ class AuthRoute extends Route
 
         $user = $userService->getUserByLogin($login);
         if (!$user || !$user->verifyPassword($password)) {
-            return new RouteResponse(['message' => 'wrong login or password'], self::RESPONSE_CODE_WRONG_LOGIN_PASSWORD);
+            return new RouteResponse([], self::RESPONSE_CODE_WRONG_LOGIN_PASSWORD, 'wrong login or password');
         }
 
-        $currentUserService = new CurrentUserService();
+        $currentUserService = new CurrentUserService($userService);
         $currentUserService->login($user);
 
         return new RouteResponse([
             'login' => $user->getLogin(),
+            'firstName' => $user->getFirstName(),
+            'middleName' => $user->getMiddleName(),
+            'lastName' => $user->getLastName(),
             'role' => $user->getRole()->value,
         ], 200);
     }
@@ -123,7 +127,7 @@ class AuthRoute extends Route
         $userRepository = new UserRepository($connection, $queryBuilder);
 
         if ($userRepository->getByLogin($login)) {
-            return new RouteResponse(['message' => 'login exists'], self::RESPONSE_CODE_DUPLICATE_LOGIN);
+            return new RouteResponse([], self::RESPONSE_CODE_DUPLICATE_LOGIN, 'login exists');
         }
 
         $userRepository->add($userDTO);
@@ -146,7 +150,7 @@ class AuthRoute extends Route
 
         $user = $userService->getByEmail($email);
         if (!$user) {
-            return new RouteResponse(['message' => 'email not exists'], self::RESPONSE_CODE_EMAIL_NOT_EXISTS);
+            return new RouteResponse([], self::RESPONSE_CODE_EMAIL_NOT_EXISTS, 'email not exists');
         }
 
         $encryptor = new Encryptor();
@@ -185,7 +189,7 @@ class AuthRoute extends Route
 
         $user = $userRepository->getByLogin($login);
         if (!$user || $user->getPassword() !== $oldHashedPassword) {
-            return new RouteResponse(['message' => 'access denied'], self::RESPONSE_CODE_ACCESS_DENIED);
+            return new RouteResponse([], self::RESPONSE_CODE_ACCESS_DENIED, 'access denied');
         }
 
         $userRepository->updateByLogin($login, ['password' => password_hash($newPassword, PASSWORD_BCRYPT)]);
@@ -195,6 +199,11 @@ class AuthRoute extends Route
 
     public function changeUserEmail(HttpData $httpData): RouteResponse
     {
+        $connection = new DBConnection();
+        $queryBuilder = new QueryBuilder();
+        $userRepository = new UserRepository($connection, $queryBuilder);
+        $userService = new UserService($userRepository);
+
         $postData = $httpData->getPostData();
 
         if (!isset($postData['email']) || $postData['email'] === '') {
@@ -202,18 +211,18 @@ class AuthRoute extends Route
         }
         $email = $_POST['email'];
 
-        $currentUserService = new CurrentUserService();
+        $currentUserService = new CurrentUserService($userService);
         if (!$currentUserService->isAuthed()) {
-            return new RouteResponse(['message' => 'not authorized'], self::RESPONSE_CODE_UNAUTHORIZED);
+            return new RouteResponse([], self::RESPONSE_CODE_UNAUTHORIZED, 'not authorized');
         }
-        $login = $currentUserService->getLogin();
+        $login = $currentUserService->getUser()->getLogin();
 
         $connection = new DBConnection();
         $queryBuilder = new QueryBuilder();
         $userRepository = new UserRepository($connection, $queryBuilder);
 
         if ($userRepository->getByEmail($email)) {
-            return new RouteResponse(['message' => 'email exists'], self::RESPONSE_CODE_EMAIL_EXISTS);
+            return new RouteResponse([], self::RESPONSE_CODE_EMAIL_EXISTS, 'email exists');
         }
 
         $userRepository->updateByLogin($login, ['email' => $email]);
@@ -223,8 +232,36 @@ class AuthRoute extends Route
 
     public function logout(HttpData $httpData): RouteResponse
     {
-        $currentUserService = new CurrentUserService();
+        $connection = new DBConnection();
+        $queryBuilder = new QueryBuilder();
+        $userRepository = new UserRepository($connection, $queryBuilder);
+        $userService = new UserService($userRepository);
+        $currentUserService = new CurrentUserService($userService);
         $currentUserService->logout();
-        return new RouteResponse(['message' => 'ok'], 200);
+        return $this->getResponseOk();
+    }
+
+    public function getCurrentUser(HttpData $httpData): RouteResponse
+    {
+        $connection = new DBConnection();
+        $queryBuilder = new QueryBuilder();
+        $userRepository = new UserRepository($connection, $queryBuilder);
+        $userService = new UserService($userRepository);
+        $currentUserService = new CurrentUserService($userService);
+        if (!$currentUserService->isAuthed())
+        {
+            return new RouteResponse([], self::RESPONSE_CODE_UNAUTHORIZED, 'not authorized');
+        }
+
+        $currentUser = $currentUserService->getUser();
+        $currentUserData = [
+            'login' => $currentUser->getLogin(),
+            'firstName' => $currentUser->getFirstName(),
+            'middleName' => $currentUser->getMiddleName(),
+            'lastName' => $currentUser->getLastName(),
+            'role' => $currentUser->getRole()->value,
+        ];
+
+        return new RouteResponse($currentUserData, 200);
     }
 }

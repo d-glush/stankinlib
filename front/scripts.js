@@ -47,6 +47,23 @@
     })
   }
 
+  function initGetCurrentUserButton() {
+    let exitButton = document.getElementById('get_current_user_button');
+    exitButton.addEventListener('click', (e) => {
+      fetch('/api/auth/get_current_user', {
+        mode: "no-cors",
+        headers: {
+          'Accept': 'application/json; charset=UTF-8',
+        },
+        method: 'GET',
+      }).then(response => response.json())
+        .then(result => {
+          console.log(result)
+          M.toast({html: result.code + ' ' + result.message});
+        })
+    })
+  }
+
   function initSpoilers() {
     document.addEventListener('DOMContentLoaded', function() {
       let elems = document.querySelectorAll('.collapsible.expandable');
@@ -196,6 +213,7 @@
   }
 
   function init() {
+    initGetCurrentUserButton();
     initExitButton();
     initSpoilers();
     initRegForm();

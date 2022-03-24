@@ -34,17 +34,17 @@ abstract class Route
 
     #[Pure] protected function getResponseWrongData(): RouteResponse
     {
-        return new RouteResponse(['message' => 'wrong data'], 400);
+        return new RouteResponse([], 400, 'wrong input data');
     }
 
     #[Pure] protected function getResponseOk(): RouteResponse
     {
-        return new RouteResponse(['message' => 'ok'], 200);
+        return new RouteResponse([], 200, 'ok');
     }
 
     private function callSubRoute($urls): RouteResponse
     {
-        $wrongMethodNameResponse = new RouteResponse(["error" => RouteResponse::WRONG_METHOD_NAME], 404);
+        $wrongMethodNameResponse = new RouteResponse([], 404, RouteResponse::WRONG_METHOD_NAME);
         if (!isset($this->subRoutes[$urls[0]])) {
             return $wrongMethodNameResponse;
         }
@@ -56,7 +56,7 @@ abstract class Route
 
     private function callMethod($methodRoute): RouteResponse
     {
-        $wrongMethodNameResponse = new RouteResponse(["error" => RouteResponse::WRONG_METHOD_NAME], 405);
+        $wrongMethodNameResponse = new RouteResponse([], 404, RouteResponse::WRONG_METHOD_NAME);
         if (!isset($this->methods[$methodRoute])) {
             return $wrongMethodNameResponse;
         }

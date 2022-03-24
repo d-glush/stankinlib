@@ -9,11 +9,13 @@ class RouteResponse
 
     private array $data;
     private int $code;
+    private string $message;
 
-    public function __construct(array $data, int $code)
+    public function __construct(array $data, int $code, string $message = 'ok')
     {
         $this->data = $data;
         $this->code = $code;
+        $this->message = $message;
     }
 
     public function getData(): array
@@ -42,7 +44,8 @@ class RouteResponse
     {
         echo json_encode([
             "data" => $this->data,
-            "code" => $this->code
+            "code" => $this->code,
+            "errorMessage" => $this->message,
         ]);
     }
 }
