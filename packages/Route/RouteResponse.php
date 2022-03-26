@@ -11,7 +11,7 @@ class RouteResponse
     private int $code;
     private string $message;
 
-    public function __construct(array $data, int $code, string $message = 'ok')
+    public function __construct(array $data, int $code, string $message = '')
     {
         $this->data = $data;
         $this->code = $code;

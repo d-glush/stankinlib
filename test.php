@@ -19,3 +19,4 @@ var_dump($httpData->getHeadersData());
 var_dump($httpData->getInputStreamData());
 
 var_dump($_FILES);
+
