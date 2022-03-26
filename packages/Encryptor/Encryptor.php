@@ -4,7 +4,7 @@ namespace Packages\Encryptor;
 
 class Encryptor
 {
-    const ENCRYPTION_KEY = 'axx6d144e3f080b61c7c2e43';
+    const ENCRYPTION_KEY = 'axx6d1hyizalupaidinahyi3';
 
     public function encrypt(string $data): string
     {

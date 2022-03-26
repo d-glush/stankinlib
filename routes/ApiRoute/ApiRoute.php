@@ -14,7 +14,7 @@ class ApiRoute extends Route
     protected function getSubRoutes(): array
     {
         return [
-            'books' => 'Routes\ApiRoute\BooksRoute\BooksRoute',
+            'publications' => 'Routes\ApiRoute\PublicationsRoute\PublicationsRoute',
             'users' => 'Routes\ApiRoute\UsersRoute\UsersRoute',
             'auth' => 'Routes\ApiRoute\AuthRoute\AuthRoute',
         ];

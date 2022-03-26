@@ -46,15 +46,16 @@ class HttpData
 
     private function collectInputStreamData(): array
     {
-        $data = array();
-        $exploded = explode('&', file_get_contents('php://input'));
-
-        foreach($exploded as $pair) {
-            $item = explode('=', $pair);
-            if (count($item) == 2) {
-                $data[urldecode($item[0])] = urldecode($item[1]);
-            }
-        }
+        $data = [file_get_contents('php://input')];
+//        $data = array();
+//        $exploded = explode('&', file_get_contents('php://input'));
+//
+//        foreach($exploded as $pair) {
+//            $item = explode('=', $pair);
+//            if (count($item) == 2) {
+//                $data[urldecode($item[0])] = urldecode($item[1]);
+//            }
+//        }
 
         return $data;
     }
