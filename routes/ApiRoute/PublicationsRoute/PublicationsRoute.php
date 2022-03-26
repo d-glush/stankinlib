@@ -32,37 +32,33 @@ class PublicationsRoute extends Route
             'totalCount' => 4,
             'currentCount' => 2,
             'publications' => [
-                '123' => [
+                [
+                    'id' => '123',
+                    'title' => 'Исследование говна с палками',
+                    'specializationName' => 'Информационрные системы и технологии',
+                    'specializationNumber' => '09.03.02',
+                    'createDate' => '13.08.2000',
+                    'editDate' => '24.03.2022',
                     'author' => [
                         'id' => '222',
                         'firstName' => 'Алексей',
                         'middleName' => 'Иванович',
                         'lastName' => 'Сосенушкин'
                     ],
-                    'data' => [
-                        'id' => '123',
-                        'title' => 'Исследование говна с палками',
-                        'specializationName' => 'Информационрные системы и технологии',
-                        'specializationNumber' => '09.03.02',
-                        'createDate' => '13.08.2000',
-                        'editDate' => '24.03.2022',
-                    ]
                 ],
-                '111' => [
+                [
+                    'id' => '111',
+                    'title' => 'Исследование говна с палками',
+                    'specializationName' => 'Информационрные системы и технологии',
+                    'specializationNumber' => '09.03.02',
+                    'createDate' => '13.08.2000',
+                    'editDate' => '24.03.2022',
                     'author' => [
                         'id' => '222',
                         'firstName' => 'Алексей',
                         'middleName' => 'Иванович',
                         'lastName' => 'Сосенушкин'
                     ],
-                    'data' => [
-                        'id' => '111',
-                        'title' => 'Исследование говна с палками',
-                        'specializationName' => 'Информационрные системы и технологии',
-                        'specializationNumber' => '09.03.02',
-                        'createDate' => '13.08.2000',
-                        'editDate' => '24.03.2022',
-                    ]
                 ],
             ],
         ], 200);
