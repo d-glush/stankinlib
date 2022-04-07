@@ -118,7 +118,7 @@ class PublicationsRoute extends Route
         $getData = $httpData->getGetData();
         $id = $getData['id'];
 
-        return new RouteResponse([$this->mockPublications[$id]], 200);
+        return new RouteResponse(['publication' => $this->mockPublications[$id]], 200);
     }
 
     public function getPublications(HttpData $httpData): RouteResponse
