@@ -37,6 +37,11 @@ abstract class Route
         return new RouteResponse([], 400, 'wrong input data');
     }
 
+    #[Pure] protected function getResponseAccessDenied(): RouteResponse
+    {
+        return new RouteResponse([], 401, 'access denied');
+    }
+
     #[Pure] protected function getResponseOk(): RouteResponse
     {
         return new RouteResponse([], 200, 'ok');

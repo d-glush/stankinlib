@@ -14,6 +14,7 @@ use Packages\Route\RouteResponse;
 use Packages\UserRepository\UserDTO\UserDTO;
 use Packages\UserRepository\UserRepository;
 use Packages\UserService\UserEntity\Role\Role;
+use Packages\UserService\UserEntity\UserEntity;
 use Packages\UserService\UserService;
 
 class AuthRoute extends Route
@@ -112,25 +113,27 @@ class AuthRoute extends Route
         $middleName = $userData['middleName'];
         $lastName = $userData['lastName'];
 
+        $connection = new DBConnection();
+        $queryBuilder = new QueryBuilder();
+        $userRepository = new UserRepository($connection, $queryBuilder);
+        $userService = new UserService($userRepository);
+
+        if ($userRepository->getByLogin($login)) {
+            return new RouteResponse([], self::RESPONSE_CODE_DUPLICATE_LOGIN, 'login exists');
+        }
+
         $userDataDTO = [
             'login' => $login,
             'password' => password_hash($password, PASSWORD_BCRYPT),
             'first_name' => $name,
             'last_name' => $lastName,
             'middle_name' => $middleName,
-            'role_id' => Role::USER->value,
+            'role_id' => Role::STUDENT->value,
         ];
         $userDTO = new UserDTO($userDataDTO);
+        $userEntity = new UserEntity($userDTO);
 
-        $connection = new DBConnection();
-        $queryBuilder = new QueryBuilder();
-        $userRepository = new UserRepository($connection, $queryBuilder);
-
-        if ($userRepository->getByLogin($login)) {
-            return new RouteResponse([], self::RESPONSE_CODE_DUPLICATE_LOGIN, 'login exists');
-        }
-
-        $userRepository->add($userDTO);
+        $userService->register($userEntity);
         return $this->getResponseOk();
     }
 

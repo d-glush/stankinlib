@@ -1,31 +1,30 @@
 <?php
 
-namespace Packages\UserRepository\UserDTO;
+namespace Packages\PublicationRepository\PublicationDTO;
 
 use ArrayIterator;
 use IteratorAggregate;
-use JetBrains\PhpStorm\Pure;
 
-class UserDTOCollection implements IteratorAggregate
+class PublicationDTOCollection implements IteratorAggregate
 {
-    /** @var array<UserDTO> $items */
+    /** @var array<PublicationDTO> $items */
     protected array $items = [];
     protected int $pointer = 0;
 
-    public function __construct(UserDto ...$items)
+    public function __construct(PublicationDTO ...$items)
     {
         foreach ($items as $item) {
             $this->items[] = $item;
         }
     }
 
-    public function add(UserDTO $item): self
+    public function add(PublicationDTO $item): self
     {
         $this->items[] = $item;
         return $this;
     }
 
-    #[Pure] public function getById(int $id): ?UserDTO
+    public function getById(int $id): ?PublicationDTO
     {
         foreach ($this->items as $item) {
             if ($item->getId() === $id) {
@@ -35,12 +34,12 @@ class UserDTOCollection implements IteratorAggregate
         return null;
     }
 
-    public function getByKey(int $key): ?UserDTO
+    public function getByKey(int $key): ?PublicationDTO
     {
         return $this->items[$key] ?? null;
     }
 
-    public function current(): UserDto
+    public function current(): PublicationDTO
     {
         return $this->items[$this->pointer];
     }

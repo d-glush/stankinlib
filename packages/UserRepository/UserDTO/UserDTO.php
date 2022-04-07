@@ -4,7 +4,7 @@ namespace Packages\UserRepository\UserDTO;
 
 use Packages\DTO\DTO;
 
-class UserDTO implements DTO
+class UserDTO extends DTO
 {
     private ?int $id;
     private string $password;
@@ -29,86 +29,48 @@ class UserDTO implements DTO
         $this->role_id = $data['role_id'];
     }
 
-    /**
-     * @return int|null
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @return string
-     */
     public function getPassword(): string
     {
         return $this->password;
     }
 
-    /**
-     * @return string
-     */
     public function getLogin(): string
     {
         return $this->login;
     }
 
-    /**
-     * @return string
-     */
     public function getFirstName(): string
     {
         return $this->first_name;
     }
 
-    /**
-     * @return string
-     */
     public function getLastName(): string
     {
         return $this->last_name;
     }
 
-    /**
-     * @return string
-     */
     public function getMiddleName(): string
     {
         return $this->middle_name;
     }
 
-    /**
-     * @return string|null
-     */
     public function getRegistrationDate(): ?string
     {
         return $this->registration_date;
     }
 
-    /**
-     * @return string|null
-     */
     public function getLastAuthDate(): ?string
     {
         return $this->last_auth_date;
     }
 
-    /**
-     * @return int
-     */
     public function getRoleId(): int
     {
         return $this->role_id;
-    }
-
-    public function getArrayData(): array
-    {
-        $data = get_object_vars($this);
-        foreach ($data as $key => $datum) {
-            if (is_null($datum)) {
-                unset($data[$key]);
-            }
-        }
-        return $data;
     }
 }

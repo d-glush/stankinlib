@@ -9,6 +9,7 @@ class HttpData
     private array $cookiesData = [];
     private array $headersData = [];
     private array $inputStreamData = [];
+    private array $files = [];
 
     public function getPostData(): array
     {
@@ -35,6 +36,11 @@ class HttpData
         return $this->inputStreamData;
     }
 
+    public function getFiles(): array
+    {
+        return $this->files;
+    }
+
     public function collectData()
     {
         $this->postData = $_POST;
@@ -42,6 +48,7 @@ class HttpData
         $this->cookiesData = $_COOKIE;
         $this->headersData = $this->collectHeadersData();
         $this->inputStreamData = $this->collectInputStreamData();
+        $this->files = $_FILES;
     }
 
     private function collectInputStreamData(): array

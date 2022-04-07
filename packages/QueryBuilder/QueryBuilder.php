@@ -15,25 +15,34 @@ class QueryBuilder {
 
     public function buildInsert(string $table, array $data): string
     {
-        $queryTemplate = '%1$s%2$s %3$s';
-        $startTemplate = 'INSERT INTO %1$s';
-        $insertingValuesTemplate = '(%1$s)';
-        $valuesTemplate = 'VALUES (%1$s)';
+        $query = 'INSERT INTO `' . $table . '`';
 
-        $start = sprintf($startTemplate, $table);
-
-        $keys = implode(',', array_keys($data));
-        $insertingValues = sprintf($insertingValuesTemplate, $keys);
-
-        foreach ($data as $key => $datum) {
-            if (is_string($datum)) {
-                $data[$key] = "'$datum'";
+        $insertingRows = [];
+        if (isset($data[0]) && is_array($data[0])) {
+            $insertingColumns = array_keys($data[0]);
+            foreach ($data as $datum) {
+                $insertingRows[] = array_values($datum);
             }
+        } else {
+            $insertingColumns = array_keys($data);
+            $insertingRows = [array_values($data)];
         }
-        $values = implode(',', array_values($data));
-        $values = sprintf($valuesTemplate, $values);
 
-        return sprintf($queryTemplate, $start, $insertingValues, $values);
+
+        $insertingColumnsImploded = implode(',', $insertingColumns);
+        $query .= " ($insertingColumnsImploded) VALUES ";
+
+        $implodedRows = [];
+        foreach ($insertingRows as $rowData) {
+            foreach ($rowData as $key => $datum) {
+                if (is_string($datum)) {
+                    $rowData[$key] = "'$datum'";
+                }
+            }
+            $implodedRows[] = "(" . implode(',', array_values($rowData)) . ")";
+        }
+        $query .= implode(',', $implodedRows);
+        return $query;
     }
 
     public function buildUpdate(string $tableName, array $setArray, array $whereArray): string

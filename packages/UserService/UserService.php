@@ -32,4 +32,18 @@ class UserService
         $userDTO = $this->userRepository->getByEmail($email);
         return $userDTO ? (new UserEntity($userDTO)) : false;
     }
+
+    public function register(UserEntity $userEntity): int
+    {
+        $userDto = new UserDTO([
+            'login' => $userEntity->getLogin(),
+            'password' => $userEntity->getPassword(),
+            'first_name' => $userEntity->getFirstName(),
+            'last_name' => $userEntity->getLastName(),
+            'middle_name' => $userEntity->getMiddleName(),
+            'role_id' => $userEntity->getRole()->value,
+        ]);
+
+        return $this->userRepository->add($userDto);
+    }
 }
