@@ -9,10 +9,13 @@ use Packages\FileRepository\FileRepository;
 use Packages\FileService\FileAttachType\FileAttachType;
 use Packages\FileService\FileService;
 use Packages\HttpDataManager\HttpData;
+use Packages\PublicationCourseRepository\PublicationCourseRepository;
+use Packages\PublicationFileRepository\PublicationFileRepository;
 use Packages\PublicationRepository\PublicationDTO\PublicationDTO;
 use Packages\PublicationRepository\PublicationRepository;
 use Packages\PublicationService\PublicationEntity\PublicationEntity;
 use Packages\PublicationService\PublicationService;
+use Packages\PublicationSpecialityRepository\PublicationSpecialityRepository;
 use Packages\QueryBuilder\QueryBuilder;
 use Packages\Route\Route;
 use Packages\Route\RouteResponse;
@@ -126,9 +129,42 @@ class PublicationsRoute extends Route
         $getData = $httpData->getGetData();
         $offset = $getData['offset'] ?? 0;
         $limit = $getData['limit'] ?? 10;
-//        $specialityIds = $getData['specialities'] ? explode(',', $getData['specialities']) : [];
-//        $courseIds = $getData['courses'] ? explode(',', $getData['courses']) : [];
-//        $authorIds = $getData['authors'] ? explode(',', $getData['authors']) : [];
+        if (isset($getData['specialities'])) {
+            $specialityIds = explode(',', $getData['specialities']);
+        } else {
+            $specialityIds = [];
+        }
+        if (isset($getData['courses'])) {
+            $courseIds = explode(',', $getData['courses']);
+        } else {
+            $courseIds = [];
+        }
+        if (isset($getData['authors'])) {
+            $authorIds = explode(',', $getData['authors']);
+        } else {
+            $authorIds = [];
+        }
+
+        $connection = new DBConnection();
+        $queryBuilder = new QueryBuilder();
+        $pubSpecRep = new PublicationSpecialityRepository($connection, $queryBuilder);
+        $pubFileRep = new PublicationFileRepository($connection, $queryBuilder);
+        $pubCourseRep = new PublicationCourseRepository($connection, $queryBuilder);
+        $publicationsRep = new PublicationRepository(
+            $connection,
+            $queryBuilder,
+            $pubFileRep,
+            $pubCourseRep,
+            $pubSpecRep,
+        );
+        $publicationService = new PublicationService($publicationsRep);
+        $publicationCollection = $publicationService->getByParams([
+            'offset' => $offset,
+            'limit' => $limit,
+            'specialityIds' => $specialityIds,
+            'courseIds' => $courseIds,
+            'authorIds' => $authorIds,
+        ]);
 
         $publications = $this->mockPublications;
 

@@ -5,6 +5,7 @@ namespace Packages\PublicationService;
 use Packages\PublicationRepository\PublicationDTO\PublicationDTO;
 use Packages\PublicationRepository\PublicationRepository;
 use Packages\PublicationService\PublicationEntity\PublicationEntity;
+use Packages\PublicationService\PublicationEntity\PublicationEntityCollection;
 
 class PublicationService
 {
@@ -33,6 +34,13 @@ class PublicationService
         return $publicationEntity;
     }
 
-    public function getByParams(array $params) {
+    public function getByParams(array $params): PublicationEntityCollection
+    {
+//        'offset' => $offset,
+//            'limit' => $limit,
+//            'specialityIds' => $specialityIds,
+//            'courseIds' => $courseIds,
+//            'authorIds' => $authorIds,
+        return new PublicationEntityCollection();
     }
 }

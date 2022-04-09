@@ -52,6 +52,7 @@ class UsersRoute extends Route
             $author['middleName'] = $userEntity->getMiddleName();
             $author['lastName'] = $userEntity->getLastName();
             $author['login'] = $userEntity->getLogin();
+            $author['name'] = sprintf('%s %s %s', $author['lastName'], $author['firstName'], $author['middleName']);
             $authors[] = $author;
         }
 
