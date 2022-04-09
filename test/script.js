@@ -1,17 +1,17 @@
 class Validator {
   config = {
     noPartFieldsPartName: '__default__',
-    attr_validate_area: 'validate_area',
-    attr_validate_part: 'validate_part',
-    attr_validate_rule: 'validate_rule',
-    attr_validate_dep: 'attr_validate_dep',
-    attr_validate_req: 'validate_req',
-    attr_validate_group: 'validate_group',
-    attr_validate_group_rule: 'validate_group_rule',
-    attr_validate_group_req_one: 'validate_group_req_one',
-    attr_validate_group_req_someone: 'validate_group_req_someone',
-    attr_validate_autoscan_ignore: 'validate_autoscan_ignore',
-    validate_error_req: 'Обязательно к заполнению',
+    attrValidateArea: 'validate-area',
+    attrValidatePart: 'validate-part',
+    attrValidateRule: 'validate-rule',
+    attrValidateDep: 'validate-dep',
+    attrValidateReq: 'validate-req',
+    attrValidateGroup: 'validate-group',
+    attrValidateGroupRule: 'validate-group-rule',
+    attrValidateName: 'validate-name',
+    attrValidateAutoscanIgnore: 'validate-autoscan-ignore',
+    validateErrorReq: 'Обязательно к заполнению',
+    logEnable: false,
   }
 
   validatorMethods;
@@ -29,54 +29,63 @@ class Validator {
 
   reset(validateAreaName = this.areaName) {
     this.areaName = validateAreaName
-    this.areaNode = document.querySelector(`[${this.config.attr_validate_area}="${validateAreaName}"]`)
+    this.areaNode = document.querySelector(`[${this.config.attrValidateArea}="${validateAreaName}"]`)
     this.parts = {};
     this.__resetNoPart();
     this.__resetParts();
   }
 
   addField(fieldNode, partName = this.config.noPartFieldsPartName) {
-    console.log(partName)
     this.parts[partName].fields[fieldNode.id] = this.__collectFieldData(fieldNode);
   }
 
   removeField(fieldNode, partName = '') {
-    let fieldList = this.__getFieldListById(fieldNode.id, partName)
+    let part = this.__getPartByFieldId(fieldNode.id, partName);
+    if (!part) {
+      this.__logError('field not founded in validator');
+    }
     let fieldId = fieldNode.id;
-    delete this.parts[partName].fields[fieldId];
+    delete part.fields[fieldId];
   }
 
-  addAllFieldsInNode(node, partName = '') {
+  addAllFieldsInNode(node, partName = this.config.noPartFieldsPartName) {
     let addingFields = this.__findAllFieldsInNode(node, false);
-    let currentFieldList = this.__getFieldListById(partName, partName);
+    if (!addingFields.length) {
+      this.__logError('no fields founded in node');
+    }
+    let part = this.parts[partName];
     addingFields.forEach((fieldNode) => {
       let fieldId = fieldNode.id;
-      currentFieldList[fieldId] = this.__collectFieldData(fieldNode);
+      part.fields[fieldId] = this.__collectFieldData(fieldNode);
     })
   }
 
   removeAllFieldsInNode(node, partName = '') {
     let removingFields = this.__findAllFieldsInNode(node, false);
-    let currentFieldList = this.__getFieldListById(partName, partName);
+    if (!removingFields.length) {
+      this.__logError('no fields founded in node');
+      return removingFields;
+    }
+    let part = this.__getPartByFieldId(removingFields[0].id, partName);
     let removedFields = [];
     removingFields.forEach((fieldNode) => {
       let fieldId = fieldNode.id;
-      if (currentFieldList[fieldId]) {
+      if (part.fields[fieldId]) {
         removedFields[fieldId] = fieldNode;
-        delete currentFieldList[fieldId];
+        delete part.fields[fieldId];
       }
     })
     return removedFields;
   }
 
   setFieldReq(fieldNode, partName = '') {
-    if (fieldNode.getAttribute(this.config.attr_validate_req) === null) {
+    if (fieldNode.getAttribute(this.config.attrValidateReq) === null) {
       this.__toggleFieldReq(fieldNode, partName);
     }
   }
 
   unsetFieldReq(fieldNode, partName = '') {
-    if (!(fieldNode.getAttribute(this.config.attr_validate_req) === null)) {
+    if (!(fieldNode.getAttribute(this.config.attrValidateReq) === null)) {
       this.__toggleFieldReq(fieldNode, partName);
     }
   }
@@ -86,69 +95,54 @@ class Validator {
   }
 
   validateAll() {
-    let result = this.__validateNoPartFields();
+    let result = {fields: {}, groups: {}};
     for (const partName in this.parts) {
       let partValidationResult = this.validatePart(partName)
-      for (const partValidationResultKey in partValidationResult) {
-        result[partValidationResultKey] = partValidationResult[partValidationResultKey]
+      for (const fieldId in partValidationResult.fields) {
+        result.fields[fieldId] = partValidationResult.fields[fieldId]
+      }
+      for (const groupName in partValidationResult.groups) {
+        result.groups[groupName] = partValidationResult.groups[groupName]
       }
     }
     return result;
   }
 
   validatePart(partName) {
-    if (this.parts[partName] && this.parts[partName].fields) {
-      return this.__validateFields(this.parts[partName].fields)
+    let result = {
+      fields: {},
+      groups: {},
     }
-    return [];
+    if (!this.parts[partName]) {
+      this.__logError('no part founded');
+      return result;
+    }
+    let fieldsValidationResult = this.__validateFields(this.parts[partName].fields);
+    let groupsValidationResult = this.__validateGroups(this.parts[partName].groups);
+    // let groupsValidationResult = {};
+    result.fields = fieldsValidationResult;
+    result.groups = groupsValidationResult;
+    return result;
   }
 
-  __getFieldListById(fieldId, partName = '') {
-    if (partName === '') {
-      for (const partName in this.parts) {
-        let fieldList = this.parts[partName];
-        let fieldIds = Object.keys(fieldList);
-        if (fieldIds.includes(fieldId)) {
-          return fieldList;
-        }
-      }
-    } else {
-      return this.parts[partName].fields;
+  __resetParts() {
+    let validateParts = this.areaNode.querySelectorAll(`[${this.config.attrValidatePart}]`)
+    for (const validatePart of validateParts) {
+      let partName = validatePart.getAttribute(this.config.attrValidatePart);
+      this.parts[partName] = {node: validatePart, fields: {}, groups: {}};
+      this.__resetPart(partName)
     }
-  }
-
-  __collectFieldData(fieldNode) {
-    let rulesAttr = fieldNode.getAttribute(this.config.attr_validate_rule);
-    let validateRules = rulesAttr ? rulesAttr.split(',') : [];
-    let id = fieldNode.id;
-    let isRequired = fieldNode.getAttribute(this.config.attr_validate_req) !== null;
-    let depsAttr = fieldNode.getAttribute(this.config.attr_validate_dep);
-    let dependencies = depsAttr ? depsAttr.split(',') : [];
-    return {
-      node: fieldNode,
-      id: id,
-      isRequired: isRequired,
-      dependencies: dependencies,
-      validateRules: validateRules
-    };
   }
 
   __resetNoPart() {
     let noPartFields = this.__findNoPartFields();
-    this.parts[this.config.noPartFieldsPartName] = {fields: {}};
+    let noPartGroupFields = this.__findNoPartGroupFields();
+    this.parts[this.config.noPartFieldsPartName] = {fields: {}, groups: {}};
+    this.parts[this.config.noPartFieldsPartName].groups = this.__collectGroupsData(noPartGroupFields);
     for (const noPartFieldId in noPartFields) {
       let noPartField = noPartFields[noPartFieldId];
       let id = noPartField.id;
       this.parts[this.config.noPartFieldsPartName].fields[id] = this.__collectFieldData(noPartField)
-    }
-  }
-
-  __resetParts() {
-    let validateParts = this.areaNode.querySelectorAll(`[${this.config.attr_validate_part}]`)
-    for (const validatePart of validateParts) {
-      let partName = validatePart.getAttribute(this.config.attr_validate_part);
-      this.parts[partName] = {node: validatePart, fields: {}};
-      this.__resetPart(partName)
     }
   }
 
@@ -159,6 +153,8 @@ class Validator {
     }
     let partNode = this.parts[partName].node;
     let validateFields = this.__findAllFieldsInNode(partNode);
+    let groupFields = this.__findAllGroupFieldsInNode(partNode);
+    this.parts[partName].groups = this.__collectGroupsData(groupFields);
     for (const validateField of validateFields) {
       let id = validateField.id;
       this.parts[partName].fields[id] = this.__collectFieldData(validateField)
@@ -166,9 +162,9 @@ class Validator {
   }
 
   __findAllFieldsInNode(node, isIgnoreEnable = true) {
-    let allFieldsByRule = [...node.querySelectorAll(`[${this.config.attr_validate_rule}]`)];
-    let allFieldsByReq = [...node.querySelectorAll(`[${this.config.attr_validate_req}]`)];
-    let allIgnoredFields = isIgnoreEnable ? [...node.querySelectorAll(`[${this.config.attr_validate_autoscan_ignore}]`)] : [];
+    let allFieldsByRule = [...node.querySelectorAll(`[${this.config.attrValidateRule}]`)];
+    let allFieldsByReq = [...node.querySelectorAll(`[${this.config.attrValidateReq}]`)];
+    let allIgnoredFields = isIgnoreEnable ? [...node.querySelectorAll(`[${this.config.attrValidateAutoscanIgnore}]`)] : [];
     let allFields = allFieldsByRule;
     allFieldsByReq.forEach((field, index) => {
       allFields.push(field);
@@ -177,10 +173,18 @@ class Validator {
     return allFields;
   }
 
+  __findAllGroupFieldsInNode(node, isIgnoreEnable = true) {
+    let allGroupFields = [...node.querySelectorAll(`[${this.config.attrValidateGroup}]`)];
+    let allIgnoredGroupFields = isIgnoreEnable
+      ? [...node.querySelectorAll(`[${this.config.attrValidateAutoscanIgnore}][${this.config.attrValidateGroup}]`)]
+      : [];
+    return allGroupFields.filter(field => !allIgnoredGroupFields.includes(field));
+  }
+
   __findNoPartFields() {
     let allFields = this.__findAllFieldsInNode(this.areaNode)
-    let partFieldsByRule = [...this.areaNode.querySelectorAll(`[${this.config.attr_validate_part}] [${this.config.attr_validate_rule}]`)];
-    let partFieldsByReq = [...this.areaNode.querySelectorAll(`[${this.config.attr_validate_part}] [${this.config.attr_validate_req}]`)];
+    let partFieldsByRule = [...this.areaNode.querySelectorAll(`[${this.config.attrValidatePart}] [${this.config.attrValidateRule}]`)];
+    let partFieldsByReq = [...this.areaNode.querySelectorAll(`[${this.config.attrValidatePart}] [${this.config.attrValidateReq}]`)];
     let allPartsFields = partFieldsByRule;
     partFieldsByReq.forEach((field, name) => {
       allPartsFields[name] = field;
@@ -188,12 +192,14 @@ class Validator {
     return allFields.filter(field => !allPartsFields.includes(field));
   }
 
-  __validateNoPartFields() {
-    return this.__validateFields(this.parts[this.config.noPartFieldsPartName].fields)
+  __findNoPartGroupFields() {
+    let allGroups = this.__findAllGroupFieldsInNode(this.areaNode)
+    let partGroups = [...this.areaNode.querySelectorAll(`[${this.config.attrValidatePart}] [${this.config.attrValidateGroup}]`)];
+    return allGroups.filter(group => !partGroups.includes(group));
   }
 
   __validateFields(fields) {
-    let results = [];
+    let results = {};
     for (const fieldId in fields) {
       let fieldData = fields[fieldId];
       let fieldNode = fieldData.node;
@@ -203,26 +209,35 @@ class Validator {
     return results;
   }
 
+  __validateGroups(groups) {
+    let results = {};
+    for (let groupName in groups) {
+      let groupData = groups[groupName];
+      results[groupName] = this.__validateGroup(groupData);
+      results[groupName].fields = groupData.fields;
+    }
+    return results;
+  }
+
   __validateField(fieldData) {
-    console.log(fieldData);
-    let value = fieldData.node.value;
+    let value = this.__fieldGetValue(fieldData.node);
     //поле не обязательное и пустое
     if (!fieldData.isRequired && !value) {
       return this.validatorMethods.__makeSuccess();
     }
-    //поле обязательное но не заполненно
-    if (fieldData.isRequired && value.length === 0) {
-      return this.validatorMethods.__makeError(this.config.validate_error_req);
+    //поле обязательное и пустое
+    if (fieldData.isRequired && !value) {
+      return this.validatorMethods.__makeError(this.config.validateErrorReq);
     }
-    //бязательно, без правил валидации и заполненно
-    if (fieldData.isRequired && value.length !== 0 && fieldData.validateRules.length === 0) {
+    //обязательно, без правил валидации и заполненно
+    if (fieldData.isRequired && value && fieldData.validateRules.length === 0) {
       return this.validatorMethods.__makeSuccess();
     }
-    let result;
-    let depsValues = this.__collectDepValues(fieldData);
 
+    let result;
+    let deps = this.__collectDepValues(fieldData);
     for (const validateRule of fieldData.validateRules) {
-      result = this.validatorMethods[validateRule](value, ...depsValues);
+      result = this.validatorMethods[validateRule](value, deps);
       if (!result.isSuccess) {
         return result;
       }
@@ -230,30 +245,117 @@ class Validator {
     return result;
   }
 
-  __toggleFieldReq(fieldNode, partName = '') {
-    let fieldId = fieldNode.id;
-    let currentFieldList = this.__getFieldListById(partName, partName); //вот это надо переделать так как теперь нет отдельного списка для полей без парта
-    if (!currentFieldList[fieldId]) {
-      console.log(`add field #${fieldId} before change req`);
-      return false;
+  __validateGroup(groupData) {
+    let fields = groupData.fields;
+    let data = {allValues: []}
+    for (let fieldId in fields) {
+      let fieldData = fields[fieldId];
+      let node = fieldData.node;
+      let validateName = fieldData.validateName;
+      let value = this.__fieldGetValue(node);
+      data[validateName] = value;
+      data.allValues.push(value)
     }
-    if (fieldNode.getAttribute(this.config.attr_validate_req) === null) {
-      fieldNode.setAttribute(this.config.attr_validate_req, 'true');
+    let result = {};
+    for (const validateRule of groupData.validateRules) {
+      result = this.validatorMethods[validateRule](data);
+      if (!result.isSuccess) {
+        return result;
+      }
+    }
+    return result;
+  }
+
+  __fieldGetValue(node) {
+    if (node.type === 'checkbox' || node.type === 'radio') {
+      return node.checked;
     } else {
-      fieldNode.removeAttribute(this.config.attr_validate_req);
+      return node.value;
     }
-    currentFieldList[fieldId] = this.__collectFieldData(fieldNode);
-    return true;
   }
 
   __collectDepValues(fieldData) {
+    let result = {allValues: []};
     let fieldNode = fieldData.node;
-    let depsString = fieldNode.getAttribute('validate_dep');
-    if (!depsString) {
-      return [];
+    let depsIds = fieldData.dependencies;
+    if (!depsIds) {
+      return result;
     }
-    let depsIds = depsString.split(',').map(depId=>depId.trim());
-    return depsIds.map(id => document.getElementById(id).value);
+    depsIds.forEach(id => {
+      let value = document.getElementById(id).value;
+      let validateName = fieldNode.getAttribute(this.config.attrValidateName);
+      result.allValues.push(value);
+      result.validateName = value;
+    });
+    return result;
+  }
+
+  __collectFieldData(fieldNode) {
+    let id = fieldNode.id;
+    let isRequired = fieldNode.getAttribute(this.config.attrValidateReq) !== null;
+    let depsAttr = fieldNode.getAttribute(this.config.attrValidateDep);
+    let dependencies = depsAttr ? depsAttr.split(',') : [];
+    let rulesAttr = fieldNode.getAttribute(this.config.attrValidateRule);
+    let validateRules = rulesAttr ? rulesAttr.split(',') : [];
+    let validateName = fieldNode.getAttribute(this.config.attrValidateName);
+    return new FieldData(id, fieldNode, isRequired, validateRules, dependencies, validateName);
+  }
+
+  __collectGroupsData(fieldNodes) {
+    let groups = {};
+    for (const fieldNode of fieldNodes) {
+      let groupName = fieldNode.getAttribute(this.config.attrValidateGroup);
+      let groupRulesAttr = fieldNode.getAttribute(this.config.attrValidateGroupRule);
+      let groupValidateRules = groupRulesAttr ? groupRulesAttr.split(',') : [];
+      let fieldId = fieldNode.id;
+      let fieldData = this.__collectFieldData(fieldNode);
+      if (!groups[groupName]) {
+        groups[groupName] = new GroupData(groupName, {}, groupValidateRules)
+      } else {
+        if (!groups[groupName].validateRules) {
+          groups[groupName].validateRules = groupValidateRules;
+        }
+      }
+      groups[groupName].fields[fieldId] = fieldData;
+    }
+    return groups;
+  }
+
+  __getPartByFieldId(fieldId, partName = '') {
+    if (partName === '') {
+      for (const partName in this.parts) {
+        let fieldList = this.parts[partName].fields;
+        let fieldIds = Object.keys(fieldList);
+        if (fieldIds.includes(fieldId)) {
+          return this.parts[partName];
+        }
+      }
+    } else {
+      return this.parts[partName];
+    }
+    return false;
+  }
+
+  __toggleFieldReq(fieldNode, partName = '') {
+    let fieldId = fieldNode.id;
+    let part = this. __getPartByFieldId(fieldId, partName);
+    if (!part) {
+      this.__logError(`add field #${fieldId} before change req`);
+      return false;
+    }
+    if (fieldNode.getAttribute(this.config.attrValidateReq) === null) {
+      fieldNode.setAttribute(this.config.attrValidateReq, 'true');
+    } else {
+      fieldNode.removeAttribute(this.config.attrValidateReq);
+    }
+    part.fields[fieldId] = this.__collectFieldData(fieldNode);
+    return true;
+  }
+
+  __logError(message) {
+    if (this.config.logEnable) {
+      console.log(message);
+    }
   }
 }
 
@@ -299,7 +401,6 @@ class ValidatorMethods {
     ) {
       return this.__makeError('Допускается только кириллица')
     }
-
     return this.__makeSuccess();
   }
 
@@ -337,8 +438,11 @@ class ValidatorMethods {
     return this.__makeSuccess();
   }
 
-  groupIncomeType(a,b,c) {
-    console.log(a,b,c);
+  groupIncomeType({isSalary, isPosobie, isOther}) {
+    if (isOther || isSalary || isPosobie) {
+      return this.__makeSuccess();
+    }
+    return this.__makeError('Необходимо что-то выбрать')
   }
 
   checkLastName(lastName) {
@@ -407,7 +511,7 @@ class ValidatorMethods {
     return this.__makeSuccess();
   }
 
-  checkPassportIssueDate(passportIssueDateStr, birthDateStr) {
+  checkPassportIssueDate(passportIssueDateStr, {allValues: [birthDateStr]}) {
     let birthDateValidationResult = this.checkBirthDate(birthDateStr);
     if (!birthDateValidationResult.isSuccess) {
       return this.__makeError('Некорректная дата рождения')
@@ -576,16 +680,55 @@ class ValidatorMethods {
     return false;
   }
   __makeError(message) {
-    return new FieldValidationResult(FieldValidationResult.VALIDATION_ERROR, message);
+    return new ValidationResult(ValidationResult.VALIDATION_ERROR, message);
   }
   __makeSuccess() {
-    return new FieldValidationResult(FieldValidationResult.VALIDATION_SUCCESS)
+    return new ValidationResult(ValidationResult.VALIDATION_SUCCESS)
   }
 }
 
-class FieldValidationResult {
+class FieldData {
+  id;
+  node;
+  isRequired;
+  validateRules;
+  dependencies;
+  validateName;
+
+  constructor(
+    id,
+    node,
+    isRequired = false,
+    validateRules = [],
+    dependencies = [],
+    validateName = null
+  ) {
+    this.id = id;
+    this.node = node;
+    this.isRequired = isRequired;
+    this.validateRules = validateRules;
+    this.dependencies = dependencies;
+    this.validateName = validateName;
+  }
+}
+
+class GroupData {
+  name;
+  fields;
+  validateRules;
+
+  constructor(name, fields, validateRules = []) {
+    this.name = name;
+    this.fields = fields;
+    this.validateRules = validateRules;
+  }
+}
+
+class ValidationResult {
   static VALIDATION_SUCCESS = true;
   static VALIDATION_ERROR = false;
+  isSuccess;
+  errorMessage;
 
   constructor(result, errorMessage = undefined) {
     this.isSuccess = result;
@@ -593,9 +736,10 @@ class FieldValidationResult {
   }
 }
 
-let firstFormValidator = new Validator('firstForm');
-console.log('final', firstFormValidator);
-let secondFormValidator = new Validator('second_form');
+let firstFormValidator = new Validator('firstForm', {logEnable: true});
+let secondFormValidator = new Validator('second_form', {logEnable: true});
+console.log('firstForm', firstFormValidator);
+console.log('secondForm', secondFormValidator);
 
 initAddRemoveBtns();
 initSubmitBtns();
@@ -617,7 +761,7 @@ function initAddRemoveBtns() {
   function removeLastElem(node, validator, partName = '') {
     let block = node.lastChild;
     let input = block.querySelector('input');
-    validator.removeField(input, partName);
+    validator.removeField(input);
     block.remove();
     console.log(validator)
   }
@@ -703,11 +847,26 @@ function initSubmitBtns() {
 
   function handleValidationErrors(errors) {
     console.log(errors);
-    for (const fieldId in errors) {
-      if (!errors[fieldId].isSuccess) {
-        errors[fieldId].node.style.backgroundColor = '#ffeaea';
+    let errorColor = '#ffeaea';
+    let successColor = '#f5ffea';
+    for (const fieldId in errors.fields) {
+      if (!errors.fields[fieldId].isSuccess) {
+        errors.fields[fieldId].node.style.backgroundColor = errorColor;
       } else {
-        errors[fieldId].node.style.backgroundColor = '#f5ffea';
+        errors.fields[fieldId].node.style.backgroundColor = successColor;
+      }
+    }
+    for (const groupName in errors.groups) {
+      let group = errors.groups[groupName]
+      let color;
+      if (!errors.groups[groupName].isSuccess) {
+        color = errorColor;
+      } else {
+        color = successColor;
+      }
+      for (const fieldId in group.fields) {
+        let field = group.fields[fieldId].node;
+        field.style.backgroundColor = color;
       }
     }
   }
@@ -716,12 +875,18 @@ function initSubmitBtns() {
 function initValidationErrorCleanEvents() {
   let inputs = document.querySelectorAll('[validate_rule]')
   let inputs2 = document.querySelectorAll('[validate_req]')
+  let inputs3 = document.querySelectorAll('[validate_group]')
   for (const input of inputs) {
     input.addEventListener('input', (e)=>{
       handleValidationErrorClean(e);
     })
   }
   for (const input of inputs2) {
+    input.addEventListener('input', (e)=>{
+      handleValidationErrorClean(e);
+    })
+  }
+  for (const input of inputs3) {
     input.addEventListener('input', (e)=>{
       handleValidationErrorClean(e);
     })

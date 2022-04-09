@@ -5,6 +5,7 @@ namespace Packages\UserRepository;
 use Packages\DBConnection\DBConnection;
 use Packages\QueryBuilder\QueryBuilder;
 use Packages\UserRepository\UserDTO\UserDTO;
+use Packages\UserRepository\UserDTO\UserDTOCollection;
 
 class UserRepository {
 
@@ -37,6 +38,20 @@ class UserRepository {
         $query = $this->queryBuilder->buildSelect($this->tableName, '*', "email='$email'");
         $result = $this->connection->query($query)->fetch();
         return $result ? new UserDTO($result) : $result;
+    }
+
+    public function getByRoleId(int $roleId): UserDTOCollection|bool
+    {
+        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "role_id='$roleId'");
+        $result = $this->connection->query($query);
+        if (!$result) {
+            return false;
+        }
+        $collection = new UserDTOCollection();
+        while ($row = $result->fetch()) {
+            $collection->add(new UserDTO($row));
+        }
+        return $collection;
     }
 
     public function add(UserDTO $userDTO): int|bool

@@ -109,7 +109,7 @@ class PublicationsRoute extends Route
         return [
             'get' => 'getPublications',
             'add' => 'createPublication',
-            'getById' => 'getById',
+            'get_by_id' => 'getById',
         ];
     }
 
@@ -126,6 +126,9 @@ class PublicationsRoute extends Route
         $getData = $httpData->getGetData();
         $offset = $getData['offset'] ?? 0;
         $limit = $getData['limit'] ?? 10;
+//        $specialityIds = $getData['specialities'] ? explode(',', $getData['specialities']) : [];
+//        $courseIds = $getData['courses'] ? explode(',', $getData['courses']) : [];
+//        $authorIds = $getData['authors'] ? explode(',', $getData['authors']) : [];
 
         $publications = $this->mockPublications;
 

@@ -16,6 +16,9 @@ class ApiRoute extends Route
         return [
             'publications' => 'Routes\ApiRoute\PublicationsRoute\PublicationsRoute',
             'users' => 'Routes\ApiRoute\UsersRoute\UsersRoute',
+            'courses' => 'Routes\ApiRoute\CoursesRoute\CoursesRoute',
+            'specialities' => 'Routes\ApiRoute\SpecialitiesRoute\SpecialitiesRoute',
+            'authors' => 'Routes\ApiRoute\AuthorsRoute\AuthorsRoute',
             'auth' => 'Routes\ApiRoute\AuthRoute\AuthRoute',
         ];
     }

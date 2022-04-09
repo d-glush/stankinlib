@@ -14,6 +14,8 @@ class PublicationDTO
     public array $specialityIds;
     /** @var array<int> $fileIds */
     public array $fileIds;
+    /** @var array<int> $courseIds */
+    public array $courseIds;
 
     public function __construct(array $data)
     {
@@ -65,5 +67,16 @@ class PublicationDTO
     public function getFileIds(): array
     {
         return $this->fileIds;
+    }
+
+    public function getCourseIds(): array
+    {
+        return $this->courseIds;
+    }
+
+    public function setCourseIds(array $courseIds): self
+    {
+        $this->courseIds = $courseIds;
+        return $this;
     }
 }

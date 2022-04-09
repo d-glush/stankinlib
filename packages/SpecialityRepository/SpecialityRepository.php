@@ -2,6 +2,7 @@
 
 namespace Packages\SpecialityRepository;
 
+use Packages\CourseRepository\SpecialityDTO\SpecialityDTO;
 use Packages\DBConnection\DBConnection;
 use Packages\QueryBuilder\QueryBuilder;
 
@@ -18,7 +19,7 @@ class SpecialityRepository
         $this->queryBuilder = $queryBuilder;
     }
 
-    public function add(CourseDTO $courseDTO): int|bool
+    public function add(SpecialityDTO $courseDTO): int|bool
     {
         $data = $courseDTO->getArrayData();
         $query = $this->queryBuilder->buildInsert($this->tableName, $data);
@@ -26,10 +27,10 @@ class SpecialityRepository
         return $this->connection->getLastInsertId();
     }
 
-    public function getById(int $id): CourseDTO
+    public function getById(int $id): SpecialityDTO
     {
         $query = $this->queryBuilder->buildSelect($this->tableName, '*', "id=$id");
         $result = $this->connection->query($query);
-        return new CourseDTO($result->fetch());
+        return new SpecialityDTO($result->fetch());
     }
 }

@@ -4,7 +4,9 @@ namespace Packages\UserService;
 
 use Packages\UserRepository\UserDTO\UserDTO;
 use Packages\UserRepository\UserRepository;
+use Packages\UserService\UserEntity\Role\Role;
 use Packages\UserService\UserEntity\UserEntity;
+use Packages\UserService\UserEntity\UserEntityCollection;
 
 class UserService
 {
@@ -31,6 +33,19 @@ class UserService
     {
         $userDTO = $this->userRepository->getByEmail($email);
         return $userDTO ? (new UserEntity($userDTO)) : false;
+    }
+
+    public function getByRole(Role $role): UserEntityCollection|bool
+    {
+        $dtoCollection = $this->userRepository->getByRoleId($role->value);
+        if (!$dtoCollection) {
+            return false;
+        }
+        $collection = new UserEntityCollection();
+        foreach ($dtoCollection as $userDto) {
+            $collection->add(new UserEntity($userDto));
+        }
+        return $collection;
     }
 
     public function register(UserEntity $userEntity): int

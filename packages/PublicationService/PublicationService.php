@@ -32,4 +32,7 @@ class PublicationService
         $publicationEntity->setId($newId);
         return $publicationEntity;
     }
+
+    public function getByParams(array $params) {
+    }
 }

@@ -3,23 +3,34 @@
 namespace Packages\PublicationRepository;
 
 use Packages\DBConnection\DBConnection;
+use Packages\PublicationCourseRepository\PublicationCourseRepository;
+use Packages\PublicationFileRepository\PublicationFileRepository;
 use Packages\PublicationRepository\PublicationDTO\PublicationDTO;
+use Packages\PublicationSpecialityRepository\PublicationSpecialityRepository;
 use Packages\QueryBuilder\QueryBuilder;
 
 class PublicationRepository
 {
     private DBConnection $dbConnection;
     private QueryBuilder $queryBuilder;
-    public string $publicationTableName = 'publication';
-    public string $publicationFileTableName = 'publication_file';
-    public string $publicationGroupTableName = 'publication_group';
-    public string $publicationSpecialityTableName = 'publication_speciality';
+    public string $tableName = 'publication';
+    private PublicationFileRepository $pubFileRepository;
+    private PublicationCourseRepository $pubCourseRepository;
+    private PublicationSpecialityRepository $pubSpecRepository;
 
 
-    public function __construct(DBConnection $dbConnection, QueryBuilder $queryBuilder)
-    {
+    public function __construct(
+        DBConnection $dbConnection,
+        QueryBuilder $queryBuilder,
+        PublicationFileRepository $pubFileRepository,
+        PublicationCourseRepository $pubCourseRepository,
+        PublicationSpecialityRepository $pubSpecRepository
+    ) {
         $this->dbConnection = $dbConnection;
         $this->queryBuilder = $queryBuilder;
+        $this->pubFileRepository = $pubFileRepository;
+        $this->pubCourseRepository = $pubCourseRepository;
+        $this->pubSpecRepository = $pubSpecRepository;
     }
 
     public function add(PublicationDTO $publicationDTO): int|bool
@@ -29,7 +40,7 @@ class PublicationRepository
             'title' => $publicationDTO->getTitle(),
             'content' => $publicationDTO->getContent(),
         ];
-        $publicationQuery = $this->queryBuilder->buildInsert($this->publicationTableName, $publicationData);
+        $publicationQuery = $this->queryBuilder->buildInsert($this->tableName, $publicationData);
         $this->dbConnection->execute($publicationQuery);
         $publicationId = $this->dbConnection->getLastInsertId();
 
@@ -43,7 +54,7 @@ class PublicationRepository
         foreach ($publicationDTO->getGroupIds() as $groupId) {
             $publicationGroupData[] = ['publication_id' => $publicationId, 'group_id' => $groupId];
         }
-        $publicationGroupQuery = $this->queryBuilder->buildInsert($this->publicationGroupTableName, $publicationGroupData) . ';';
+        $publicationGroupQuery = $this->queryBuilder->buildInsert($this->publicationCourseTableName, $publicationGroupData) . ';';
 
         $publicationSpecialityData = [];
         foreach ($publicationDTO->getSpecialityIds() as $specialityId) {
