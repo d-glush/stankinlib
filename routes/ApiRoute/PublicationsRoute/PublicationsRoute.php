@@ -2,109 +2,45 @@
 
 namespace Routes\ApiRoute\PublicationsRoute;
 
-use DateTime;
+use JetBrains\PhpStorm\Pure;
+use Packages\CourseRepository\CourseDTO\CourseDTO;
+use Packages\CourseRepository\CourseRepository;
 use Packages\CurrentUserService\CurrentUserService;
 use Packages\DBConnection\DBConnection;
+use Packages\FileRepository\FileDTO\FileDTO;
 use Packages\FileRepository\FileRepository;
 use Packages\FileService\FileAttachType\FileAttachType;
 use Packages\FileService\FileService;
 use Packages\HttpDataManager\HttpData;
+use Packages\Limit\Limit;
 use Packages\PublicationCourseRepository\PublicationCourseRepository;
 use Packages\PublicationFileRepository\PublicationFileRepository;
 use Packages\PublicationRepository\PublicationDTO\PublicationDTO;
 use Packages\PublicationRepository\PublicationRepository;
 use Packages\PublicationService\PublicationEntity\PublicationEntity;
+use Packages\PublicationService\PublicationEntity\PublicationEntityCollection;
 use Packages\PublicationService\PublicationService;
 use Packages\PublicationSpecialityRepository\PublicationSpecialityRepository;
 use Packages\QueryBuilder\QueryBuilder;
 use Packages\Route\Route;
 use Packages\Route\RouteResponse;
+use Packages\SpecialityRepository\SpecialityDTO\SpecialityDTO;
+use Packages\SpecialityRepository\SpecialityRepository;
+use Packages\UserRepository\UserDTO\UserDTO;
 use Packages\UserRepository\UserRepository;
 use Packages\UserService\UserEntity\Role\Role;
-use Packages\UserService\UserEntity\UserEntity;
 use Packages\UserService\UserService;
 
 class PublicationsRoute extends Route
 {
-    public int $mockPublicationNum = 1000;
-    public array $mockPublication = [
-        'id' => 0,
-        'title' => 'Исследование говна с палками',
-        'content' => 'Этот пост я замутил для вас ребята!!',
-        'author' => [
-            'id' => '222',
-            'firstName' => 'Алексей',
-            'middleName' => 'Иванович',
-            'lastName' => 'Сосенушкин'
-        ],
-        'specializations' => [
-            [
-                'id' => 1,
-                'name' => 'Информационные системы и технологии 1',
-                'number' => '09.03.02'
-            ],
-            [
-                'id' => 2,
-                'name' => 'Информационные системы и технологии 2',
-                'number' => '09.03.02'
-            ],
-            [
-                'id' => 3,
-                'name' => 'Информационные системы и технологии 3',
-                'number' => '09.03.02'
-            ],
-        ],
-        'courses' => [
-            [
-                'id' => 1,
-                'name' => 'Бакалавриат 1 курс',
-                'education_year' => 1
-            ],
-            [
-                'id' => 3,
-                'name' => 'Бакалавриат 3 курс',
-                'education_year' => 3
-            ],
-        ],
-        'files' => [
-            [
-                'name' => 'Методичка по лр 1.pdf',
-                'location' => '/storage/publication_files/testPdf.pdf',
-                'type' => 'file/pdf'
-            ],
-            [
-                'name' => 'Схема.img',
-                'location' => '/storage/publication_files/testImg.img',
-                'type' => 'image/img'
-            ],
-        ],
-        'createDate' => '13.08.2000',
-        'editDate' => '24.03.2022',
-    ];
-    public array $mockPublications = [
-    ];
-
-    public function __construct(array $urls = [])
+    #[Pure] public function __construct(array $urls = [])
     {
         parent::__construct($urls);
-        for ($i = 0; $i < $this->mockPublicationNum; $i++) {
-            $this->mockPublications[] = $this->mockPublication;
-        }
-        foreach ($this->mockPublications as $index => &$publication) {
-            $publication['id'] = $index;
-            $publication['title'] = "$index " . $publication['title'] . " $index";
-            $randContentDublicates = rand(1, 6);
-            for ($i = 0; $i < $randContentDublicates; $i++) {
-                $publication['content'] .= $publication['content'];
-            }
-        }
     }
 
     protected function getSubRoutes(): array
     {
-        return [
-
-        ];
+        return [];
     }
 
     protected function getMethods(): array
@@ -119,9 +55,30 @@ class PublicationsRoute extends Route
     public function getById(HttpData $httpData): RouteResponse
     {
         $getData = $httpData->getGetData();
-        $id = $getData['id'];
+        if (!isset($getData['id'])) {
+            return $this->getResponseWrongData();
+        }
+        $publicationId = $getData['id'];
 
-        return new RouteResponse(['publication' => $this->mockPublications[$id]], 200);
+        $connection = new DBConnection();
+        $queryBuilder = new QueryBuilder();
+        $pubSpecRep = new PublicationSpecialityRepository($connection, $queryBuilder);
+        $pubFileRep = new PublicationFileRepository($connection, $queryBuilder);
+        $pubCourseRep = new PublicationCourseRepository($connection, $queryBuilder);
+        $publicationsRep = new PublicationRepository(
+            $connection,
+            $queryBuilder,
+            $pubFileRep,
+            $pubCourseRep,
+            $pubSpecRep
+        );
+        $publicationService = new PublicationService($publicationsRep);
+        $publicationCollection = $publicationService->getByIds([$publicationId]);
+        if (!$publicationCollection->length()) {
+            return new RouteResponse([], 404, 'no publication with this id');
+        }
+        $publications = $this->compositePubsData($publicationCollection);
+        return new RouteResponse(['publication' => $publications[0]], 200);
     }
 
     public function getPublications(HttpData $httpData): RouteResponse
@@ -155,25 +112,25 @@ class PublicationsRoute extends Route
             $queryBuilder,
             $pubFileRep,
             $pubCourseRep,
-            $pubSpecRep,
+            $pubSpecRep
         );
         $publicationService = new PublicationService($publicationsRep);
-        $publicationCollection = $publicationService->getByParams([
-            'offset' => $offset,
-            'limit' => $limit,
-            'specialityIds' => $specialityIds,
-            'courseIds' => $courseIds,
-            'authorIds' => $authorIds,
-        ]);
+        $limit = new Limit($limit, $offset);
+        $publicationCollection = $publicationService->getByParams(
+            $limit,
+            $authorIds,
+            $specialityIds,
+            $courseIds
+        );
 
-        $publications = $this->mockPublications;
-
-        $selectedPublications = array_slice($publications, $offset, $limit);
+        $totalCount = $publicationService->getCountByParams($authorIds, $specialityIds, $courseIds);
+        $currentCount = $publicationCollection->length();
+        $publications = $this->compositePubsData($publicationCollection);
 
         return new RouteResponse([
-            'totalCount' => count($publications),
-            'currentCount' => count($selectedPublications),
-            'publications' => $selectedPublications
+            'totalCount' => $totalCount,
+            'currentCount' => $currentCount,
+            'publications' => $publications
         ], 200);
     }
 
@@ -195,13 +152,23 @@ class PublicationsRoute extends Route
 
         $title = $publicationData->title;
         $content = $publicationData->content;
-        $specialtyIds = $publicationData->specialties;
+        $specialtyIds = $publicationData->specialties ?? [];
+        $courseIds = $publicationData->courses ?? [];
         $files = $httpData->getFiles();
         $authorId = $currentUser->getId();
 
         $fileRepository = new FileRepository($dbConnection, $queryBuilder);
         $fileService = new FileService($fileRepository);
-        $publicationRepository = new PublicationRepository($dbConnection, $queryBuilder);
+        $pubFileRep = new PublicationFileRepository($dbConnection, $queryBuilder);
+        $pubSpecRep = new PublicationSpecialityRepository($dbConnection, $queryBuilder);
+        $pubCourseRep = new PublicationCourseRepository($dbConnection, $queryBuilder);
+        $publicationRepository = new PublicationRepository(
+            $dbConnection,
+            $queryBuilder,
+            $pubFileRep,
+            $pubCourseRep,
+            $pubSpecRep,
+        );
         $publicationService = new PublicationService($publicationRepository);
 
         $filesIds = $fileService->addFiles($files, FileAttachType::PUBLICATION);
@@ -209,6 +176,7 @@ class PublicationsRoute extends Route
             'author_id' => $authorId,
             'title' => $title,
             'content' => $content,
+            'courseIds' => $courseIds,
             'specialityIds' => $specialtyIds,
             'fileIds' => $filesIds,
         ]);
@@ -216,5 +184,92 @@ class PublicationsRoute extends Route
         $publicationEntity = $publicationService->create($publicationEntity);
 
         return new RouteResponse(['publicationId' => $publicationEntity->getId()], 200);
+    }
+
+    private function compositePubsData(PublicationEntityCollection $publicationCollection): array
+    {
+        $allCourseIds = [];
+        $allSpecialityIds = [];
+        $allFileIds = [];
+        $allAuthorIds = [];
+        /** @var PublicationEntity $publicationEntity */
+        foreach ($publicationCollection as $publicationEntity) {
+            $allCourseIds = array_merge($allCourseIds, $publicationEntity->getCourseIds());
+            $allSpecialityIds = array_merge($allSpecialityIds, $publicationEntity->getSpecialityIds());
+            $allFileIds = array_merge($allFileIds, $publicationEntity->getFileIds());
+            $allAuthorIds = array_merge($allAuthorIds, [$publicationEntity->getAuthorId()]);
+        }
+        $allCourseIds = array_unique($allCourseIds);
+        $allSpecialityIds = array_unique($allSpecialityIds);
+        $allFileIds = array_unique($allFileIds);
+        $allAuthorIds = array_unique($allAuthorIds);
+
+        $connection = new DBConnection();
+        $queryBuilder = new QueryBuilder();
+        $courseRepository = new CourseRepository($connection, $queryBuilder);
+        $specRepository = new SpecialityRepository($connection, $queryBuilder);
+        $fileRepository = new FileRepository($connection, $queryBuilder);
+        $userRepository = new UserRepository($connection, $queryBuilder);
+
+        $allCourse = $courseRepository->getByIds($allCourseIds);
+        $allSpeciality = $specRepository->getByIds($allSpecialityIds);
+        $allFile = $fileRepository->getByIds($allFileIds);
+        $allAuthors = $userRepository->getByIds($allAuthorIds);
+        $allCourseById = [];
+        $allSpecialityById = [];
+        $allFileById = [];
+        $allAuthorsById = [];
+        /** @var CourseDTO $courseDTO */
+        foreach ($allCourse as $courseDTO) {
+            $allCourseById[$courseDTO->getId()] = $courseDTO;
+        }
+        /** @var SpecialityDTO $specDTO */
+        foreach ($allSpeciality as $specDTO) {
+            $allSpecialityById[$specDTO->getId()] = $specDTO;
+        }
+        /** @var FileDTO $fileDTO */
+        foreach ($allFile as $fileDTO) {
+            $allFileById[$fileDTO->getId()] = $fileDTO;
+        }
+        /** @var UserDTO $userDTO */
+        foreach ($allAuthors as $userDTO) {
+            $allAuthorsById[$userDTO->getId()] = $userDTO;
+        }
+
+        $publications = [];
+        /** @var PublicationEntity $publicationEntity */
+        foreach ($publicationCollection as $publicationEntity) {
+            $currentAuthor = $allAuthorsById[$publicationEntity->getAuthorId()];
+            $currentSpecialisations = [];
+            $currentCourses = [];
+            $currentFiles = [];
+            foreach ($publicationEntity->getSpecialityIds() as $specialityId) {
+                $currentSpecialisations[] = $allSpecialityById[$specialityId];
+            }
+            foreach ($publicationEntity->getCourseIds() as $courseId) {
+                $currentCourses[] = $allCourseById[$courseId];
+            }
+            foreach ($publicationEntity->getFileIds() as $fileId) {
+                $currentFiles[] = $allFileById[$fileId];
+            }
+            $publications[] = [
+                'id' => $publicationEntity->getId(),
+                'title' => $publicationEntity->getTitle(),
+                'content' => $publicationEntity->getContent(),
+                'author' => [
+                    'id' => $currentAuthor->getId(),
+                    'firstName' => $currentAuthor->getFirstName(),
+                    'middleName' => $currentAuthor->getMiddleName(),
+                    'lastName' => $currentAuthor->getLastName(),
+                ],
+                'courses' => $currentCourses,
+                'specialisations' => $currentSpecialisations,
+                'files' => $currentFiles,
+                'createDate' => $publicationEntity->getCreateDate(),
+                'editDate' => $publicationEntity->getEditDate(),
+            ];
+        }
+
+        return $publications;
     }
 }

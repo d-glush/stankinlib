@@ -18,6 +18,8 @@ class PublicationEntity
     private array $specialityIds;
     /** @var array<int> $fileIds */
     private array $fileIds;
+    /** @var array<int> $courseIds */
+    private array $courseIds;
 
     #[Pure] public function __construct(PublicationDTO $publicationDTO)
     {
@@ -25,9 +27,10 @@ class PublicationEntity
         $this->author_id = $publicationDTO->getAuthorId();
         $this->title = $publicationDTO->getTitle();
         $this->content = $publicationDTO->getContent();
-        $this->create_date = $publicationDTO->getCreateDate();
-        $this->edit_date = $publicationDTO->getCreateDate();
+        $this->create_date = $publicationDTO->getCreateDate() ? new DateTime($publicationDTO->getCreateDate()) : null;
+        $this->edit_date = $publicationDTO->getEditDate() ? new DateTime($publicationDTO->getEditDate()) : null;
         $this->specialityIds = $publicationDTO->getSpecialityIds();
+        $this->courseIds = $publicationDTO->getCourseIds();
         $this->fileIds = $publicationDTO->getFileIds();
     }
 
@@ -128,6 +131,23 @@ class PublicationEntity
     public function setFileIds(array $fileIds): self
     {
         $this->fileIds = $fileIds;
+        return $this;
+    }
+
+    /**
+     * @return int[]
+     */
+    public function getCourseIds(): array
+    {
+        return $this->courseIds;
+    }
+
+    /**
+     * @param int[] $courseIds
+     */
+    public function setCourseIds(array $courseIds): self
+    {
+        $this->courseIds = $courseIds;
         return $this;
     }
 }

@@ -26,6 +26,7 @@ class PublicationDTO
         $this->create_date = $data['create_date'] ?? null;
         $this->edit_date = $data['edit_date'] ?? null;
         $this->specialityIds = $data['specialityIds'] ?? [];
+        $this->courseIds = $data['courseIds'] ?? [];
         $this->fileIds = $data['fileIds'] ?? [];
     }
 

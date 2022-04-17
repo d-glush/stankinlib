@@ -6,8 +6,9 @@ use Packages\DBConnection\DBConnection;
 use Packages\FileRepository\FileDTO\FileDTO;
 use Packages\QueryBuilder\QueryBuilder;
 use Packages\FileRepository\FileDTO\FileDTOCollection;
+use Packages\Repository\Repository;
 
-class FileRepository
+class FileRepository extends Repository
 {
     private DBConnection $connection;
     private QueryBuilder $queryBuilder;
@@ -28,10 +29,13 @@ class FileRepository
 
     public function getByIds(array $ids): FileDTOCollection
     {
-        $idsImploded = implode(',', $ids);
-        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "id IN ($idsImploded)");
-        $result = $this->connection->query($query);
         $collection = new FileDTOCollection();
+        if (!count($ids)) {
+            return $collection;
+        }
+        $in = $this->makeIn($ids);
+        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "id $in");
+        $result = $this->connection->query($query);
         while ($fileData = $result->fetch()) {
             $collection->add(new FileDTO($fileData));
         }

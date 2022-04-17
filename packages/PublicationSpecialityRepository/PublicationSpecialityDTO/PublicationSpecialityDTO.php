@@ -20,7 +20,7 @@ class PublicationSpecialityDTO extends DTO
         return $this->publication_id;
     }
 
-    public function getSpecialityId(): string
+    public function getSpecialityId(): int
     {
         return $this->speciality_id;
     }

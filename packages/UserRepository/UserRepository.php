@@ -4,11 +4,12 @@ namespace Packages\UserRepository;
 
 use Packages\DBConnection\DBConnection;
 use Packages\QueryBuilder\QueryBuilder;
+use Packages\Repository\Repository;
 use Packages\UserRepository\UserDTO\UserDTO;
 use Packages\UserRepository\UserDTO\UserDTOCollection;
 
-class UserRepository {
-
+class UserRepository extends Repository
+{
     private DBConnection $connection;
     private QueryBuilder $queryBuilder;
     private string $tableName = 'user';
@@ -24,6 +25,21 @@ class UserRepository {
         $query = $this->queryBuilder->buildSelect($this->tableName, '*', "id=$id");
         $result = $this->connection->query($query);
         return new UserDTO($result->fetch());
+    }
+
+    public function getByIds(array $ids): UserDTOCollection
+    {
+        $collection = new UserDTOCollection();
+        if (!count($ids)) {
+            return $collection;
+        }
+        $in = $this->makeIn($ids);
+        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "id $in");
+        $result = $this->connection->query($query);
+        while ($userData = $result->fetch()) {
+            $collection->add(new UserDTO($userData));
+        }
+        return $collection;
     }
 
     public function getByLogin(string $login): UserDTO|bool

@@ -6,8 +6,9 @@ use Packages\DBConnection\DBConnection;
 use Packages\QueryBuilder\QueryBuilder;
 use Packages\PublicationCourseRepository\PublicationCourseDTO\PublicationCourseDTOCollection;
 use Packages\PublicationCourseRepository\PublicationCourseDTO\PublicationCourseDTO;
+use Packages\Repository\Repository;
 
-class PublicationCourseRepository
+class PublicationCourseRepository extends Repository
 {
     private DBConnection $connection;
     private QueryBuilder $queryBuilder;
@@ -24,24 +25,30 @@ class PublicationCourseRepository
     {
         $data = $courseDTO->getArrayData();
         $query = $this->queryBuilder->buildInsert($this->tableName, $data);
+        var_dump($query);
         $this->connection->execute($query);
         return $this->connection->getLastInsertId();
     }
 
-    public function getByPublicationId(int $id): PublicationCourseDTOCollection
+    public function getByPublicationIds(array $ids): PublicationCourseDTOCollection
     {
-        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "publication_id=$id");
-        $result = $this->connection->query($query);
         $collection = new PublicationCourseDTOCollection();
+        if (!count($ids)) {
+            return $collection;
+        }
+        $in = $this->makeIn($ids);
+        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "publication_id $in");
+        $result = $this->connection->query($query);
         while ($row = $result->fetch()) {
             $collection->add(new PublicationCourseDTO($row));
         }
         return $collection;
     }
 
-    public function getByCourseId(int $id): PublicationCourseDTOCollection
+    public function getByCourseIds(array $ids): PublicationCourseDTOCollection
     {
-        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "course_id=$id");
+        $in = $this->makeIn($ids);
+        $query = $this->queryBuilder->buildSelect($this->tableName, '*', "course_id $in");
         $result = $this->connection->query($query);
         $collection = new PublicationCourseDTOCollection();
         while ($row = $result->fetch()) {

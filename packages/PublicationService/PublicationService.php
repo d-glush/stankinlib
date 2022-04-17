@@ -2,6 +2,7 @@
 
 namespace Packages\PublicationService;
 
+use Packages\Limit\Limit;
 use Packages\PublicationRepository\PublicationDTO\PublicationDTO;
 use Packages\PublicationRepository\PublicationRepository;
 use Packages\PublicationService\PublicationEntity\PublicationEntity;
@@ -23,7 +24,7 @@ class PublicationService
             'title' => $publicationEntity->getTitle(),
             'content' => $publicationEntity->getContent(),
             'specialityIds' => $publicationEntity->getSpecialityIds(),
-            'groupIds' => $publicationEntity->getGroupIds(),
+            'courseIds' => $publicationEntity->getCourseIds(),
             'fileIds' => $publicationEntity->getFileIds(),
         ]);
         $newId = $this->publicationRepository->add($publicationDTO);
@@ -34,13 +35,37 @@ class PublicationService
         return $publicationEntity;
     }
 
-    public function getByParams(array $params): PublicationEntityCollection
+    public function getByIds(array $ids): PublicationEntityCollection
     {
-//        'offset' => $offset,
-//            'limit' => $limit,
-//            'specialityIds' => $specialityIds,
-//            'courseIds' => $courseIds,
-//            'authorIds' => $authorIds,
-        return new PublicationEntityCollection();
+        $dtoCollection = $this->publicationRepository->getByIds($ids);
+        $result = new PublicationEntityCollection();
+        foreach ($dtoCollection as $dto) {
+            $result->add(new PublicationEntity($dto));
+        }
+        return $result;
+    }
+
+    public function getByParams(
+        Limit $limit,
+        array $authorIds = [],
+        array $specialityIds = [],
+        array $courseIds = []
+    ): PublicationEntityCollection {
+        $dtoCollection = $this->publicationRepository->getByParams(
+            $limit,
+            $authorIds,
+            $specialityIds,
+            $courseIds
+        );
+        $result = new PublicationEntityCollection();
+        foreach ($dtoCollection as $dto) {
+            $result->add(new PublicationEntity($dto));
+        }
+        return $result;
+    }
+
+    public function getCountByParams(array $authorIds, array $specialityIds, array $courseIds): int
+    {
+        return $this->publicationRepository->getCountByParams($authorIds, $specialityIds, $courseIds);
     }
 }

@@ -20,7 +20,7 @@ class PublicationCourseDTO extends DTO
         return $this->publication_id;
     }
 
-    public function getCourseId(): string
+    public function getCourseId(): int
     {
         return $this->course_id;
     }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Packages\CourseRepository\SpecialityDTO;
+namespace Packages\SpecialityRepository\SpecialityDTO;
 
 use Packages\DTO\DTO;
 
@@ -8,13 +8,13 @@ class SpecialityDTO extends DTO
 {
     public ?int $id;
     public string $name;
-    public int $education_year;
+    public string $number;
 
     public function __construct(array $data)
     {
         $this->id = $data['id'] ?? null;
         $this->name = $data['name'];
-        $this->education_year = $data['education_year'];
+        $this->number = $data['number'];
     }
 
     public function getId(): ?int
@@ -27,8 +27,8 @@ class SpecialityDTO extends DTO
         return $this->name;
     }
 
-    public function getEducationYear(): int
+    public function getNumber(): int
     {
-        return $this->education_year;
+        return $this->number;
     }
 }
